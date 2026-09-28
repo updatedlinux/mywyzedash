@@ -4,6 +4,7 @@ import { createServer } from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
+import { hlsUrl } from '../public/js/api.js'
 import { createApp } from './index.js'
 import { listCameras, listClips, listDates, parseByteRange, parseMvhd, resolveClip } from './recordings.js'
 
@@ -15,6 +16,16 @@ function mvhdV0(timescale, duration) {
   buffer.writeUInt32BE(duration, 20)
   return buffer
 }
+
+test('el directo apunta al master HLS del bridge, no al puerto de la app', () => {
+  const url = hlsUrl({
+    bridgeHost: '192.168.88.37',
+    hlsPort: 5080,
+    hlsPath: '/hls/{camera}.m3u8',
+  }, 'estacionamiento')
+  assert.equal(url, 'http://192.168.88.37:5080/hls/estacionamiento.m3u8')
+  assert.equal(url.includes(':3000'), false)
+})
 
 test('parseMvhd lee duración versión 0', () => {
   assert.equal(parseMvhd(mvhdV0(1000, 300000)), 300)

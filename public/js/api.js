@@ -17,10 +17,22 @@ export function mediaUrl(camera, date, file) {
 }
 
 export function hlsUrl(config, camera) {
-  const host = config.bridgeHost || window.location.hostname
-  const cameraPath = config.hlsPath.replaceAll('{camera}', encodeURIComponent(camera))
-  const path = cameraPath.startsWith('/') ? cameraPath : `/${cameraPath}`
-  return `http://${host}:${config.hlsPort}${path}`
+  const name = encodeURIComponent(camera)
+  const template = (config.hlsPath || '/hls/{camera}.m3u8').replaceAll('{camera}', name)
+  if (/^https?:\/\//i.test(template)) return template
+
+  const page = globalThis.window?.location
+  const host = config.bridgeHost || page?.hostname || ''
+  const port = config.hlsPort
+  const path = template.startsWith('/') ? template : `/${template}`
+  const url = `http://${host}:${port}${path}`
+  if (page) {
+    const pagePort = page.port || (page.protocol === 'https:' ? '443' : '80')
+    if (host === page.hostname && String(port) === String(pagePort)) {
+      throw new Error('La URL HLS apunta a esta app. Tiene que ser la del bridge.')
+    }
+  }
+  return url
 }
 
 export function formatBytes(bytes) {

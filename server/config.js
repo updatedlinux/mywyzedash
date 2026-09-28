@@ -12,7 +12,7 @@ function envInt(env, name, fallback) {
 
 export function loadConfig(env = process.env) {
   const recordingsPath = (env.RECORDINGS_PATH || '/Volumes/WyzeNVR/wyze-bridge/recordings').trim()
-  const hlsPath = (env.HLS_PATH || '/{camera}/index.m3u8').trim()
+  const hlsPath = (env.HLS_PATH || '/hls/{camera}.m3u8').trim()
   if (!hlsPath.includes('{camera}')) {
     throw new Error('HLS_PATH debe incluir el marcador {camera}')
   }
@@ -20,8 +20,8 @@ export function loadConfig(env = process.env) {
   return {
     port: envInt(env, 'PORT', 3000),
     recordingsPath: path.resolve(recordingsPath),
-    bridgeHost: (env.BRIDGE_HOST || '').trim(),
-    hlsPort: envInt(env, 'HLS_PORT', 8888),
+    bridgeHost: (env.BRIDGE_HOST || '192.168.88.37').trim(),
+    hlsPort: envInt(env, 'HLS_PORT', 5080),
     rtspPort: envInt(env, 'RTSP_PORT', 8554),
     hlsPath,
   }

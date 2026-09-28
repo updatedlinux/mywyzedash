@@ -78,7 +78,14 @@ function connect() {
   destroyPlayer()
 
   const video = document.getElementById('live-video')
-  const url = hlsUrl(state.config, state.camera)
+  let url
+  try {
+    url = hlsUrl(state.config, state.camera)
+  } catch (error) {
+    showError(error.message)
+    setStage('Sin señal en vivo.')
+    return
+  }
   document.getElementById('live-url').textContent = url
   setStage('Conectando…')
 
