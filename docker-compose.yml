@@ -7,7 +7,7 @@ services:
     environment:
       RECORDINGS_PATH: /recordings
       BRIDGE_HOST: ${BRIDGE_HOST:-192.168.88.37}
-      HLS_PORT: ${HLS_PORT:-5080}
+      HLS_PORT: ${HLS_PORT:-8888}
       RTSP_PORT: ${RTSP_PORT:-8554}
       HLS_PATH: ${HLS_PATH:-/hls/{camera}.m3u8}
       PORT: 3000

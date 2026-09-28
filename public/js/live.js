@@ -120,7 +120,7 @@ function attachHls(video, url) {
   player.on(window.Hls.Events.ERROR, (_event, data) => {
     if (!data?.fatal) return
     const detail = data.details || data.type || 'error de red'
-    showError(`No se pudo abrir el directo (${detail}). Revisa que el bridge publique HLS en el puerto ${state.config.hlsPort}.`)
+    showError(`No se pudo abrir el directo (${detail}). URL: ${url}`)
     setStage('Sin señal en vivo.')
     destroyPlayer()
   })

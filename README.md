@@ -27,7 +27,7 @@ Copia `.env.example` a `.env` si quieres correrlo con Docker Compose.
 | --- | --- |
 | `RECORDINGS_PATH` | Carpeta de grabaciones, solo lectura |
 | `BRIDGE_HOST` | IP del bridge. Por defecto `192.168.88.37` |
-| `HLS_PORT` | Puerto del master HLS, por defecto `5080` |
+| `HLS_PORT` | Puerto del master HLS, por defecto `8888` |
 | `HLS_PATH` | Plantilla, por defecto `/hls/{camera}.m3u8` |
 | `RTSP_PORT` | Solo informativo. El navegador no abre RTSP |
 | `PORT` | Puerto de esta app, por defecto `3000` |
@@ -57,6 +57,6 @@ docker compose up -d --build
 - `GET /api/media/:camera/:date/:archivo.mp4` (acepta `Range`)
 - `GET /api/config` (host y puerto HLS para el navegador)
 
-La pestaña En vivo no hace proxy. `hls.js` abre el master tal cual, por ejemplo `http://192.168.88.37:5080/hls/estacionamiento.m3u8`, y resuelve los segmentos contra ese host.
+La pestaña En vivo no hace proxy. `hls.js` abre el master tal cual, por ejemplo `http://192.168.88.37:8888/hls/estacionamiento.m3u8`, y resuelve los segmentos contra ese host. El puerto 5080 es solo el WebUI.
 
 No hay autenticación: es para la red de casa. No publiques el puerto 3000 en internet.
