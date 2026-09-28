@@ -1,4 +1,4 @@
-import { getJson, hlsUrl } from './api.js'
+import { collapseBridgeHlsUrl, getJson, hlsUrl } from './api.js'
 
 const state = {
   booted: false,
@@ -110,6 +110,10 @@ function attachHls(video, url) {
     enableWorker: true,
     lowLatencyMode: false,
     liveSyncDurationCount: 3,
+    xhrSetup(_xhr, requestUrl, context) {
+      const fixed = collapseBridgeHlsUrl(requestUrl)
+      if (context && fixed !== requestUrl) context.url = fixed
+    },
   })
   state.hls = player
   player.loadSource(url)

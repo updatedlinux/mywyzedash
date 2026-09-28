@@ -16,6 +16,14 @@ export function mediaUrl(camera, date, file) {
   return `/api/media/${encodeURIComponent(camera)}/${encodeURIComponent(date)}/${encodeURIComponent(file)}`
 }
 
+export function collapseBridgeHlsUrl(url) {
+  let next = String(url)
+  while (next.includes('/hls/hls/')) {
+    next = next.replaceAll('/hls/hls/', '/hls/')
+  }
+  return next
+}
+
 export function hlsUrl(config, camera) {
   const name = encodeURIComponent(camera)
   const template = (config.hlsPath || '/hls/{camera}.m3u8').replaceAll('{camera}', name)
