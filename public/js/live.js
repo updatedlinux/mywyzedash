@@ -108,7 +108,8 @@ function connect() {
 function attachHls(video, url) {
   const player = new window.Hls({
     enableWorker: true,
-    lowLatencyMode: true,
+    lowLatencyMode: false,
+    liveSyncDurationCount: 3,
   })
   state.hls = player
   player.loadSource(url)

@@ -20,10 +20,10 @@ function mvhdV0(timescale, duration) {
 test('el directo apunta al master HLS del bridge, no al puerto de la app', () => {
   const url = hlsUrl({
     bridgeHost: '192.168.88.37',
-    hlsPort: 8888,
+    hlsPort: 5080,
     hlsPath: '/hls/{camera}.m3u8',
   }, 'estacionamiento')
-  assert.equal(url, 'http://192.168.88.37:8888/hls/estacionamiento.m3u8')
+  assert.equal(url, 'http://192.168.88.37:5080/hls/estacionamiento.m3u8')
   assert.equal(url.includes(':3000'), false)
 })
 

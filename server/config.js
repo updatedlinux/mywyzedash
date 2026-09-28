@@ -21,7 +21,7 @@ export function loadConfig(env = process.env) {
     port: envInt(env, 'PORT', 3000),
     recordingsPath: path.resolve(recordingsPath),
     bridgeHost: (env.BRIDGE_HOST || '192.168.88.37').trim(),
-    hlsPort: envInt(env, 'HLS_PORT', 8888),
+    hlsPort: envInt(env, 'HLS_PORT', 5080),
     rtspPort: envInt(env, 'RTSP_PORT', 8554),
     hlsPath,
   }
