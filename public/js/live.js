@@ -6,7 +6,6 @@ const state = {
   cameras: [],
   camera: '',
   hls: null,
-  mediaRecoveries: 0,
 }
 
 export function mountLive() {
@@ -76,7 +75,6 @@ function connect() {
   if (!state.config || !state.camera) return
   if (document.getElementById('view-live').hidden) return
   clearError()
-  state.mediaRecoveries = 0
   destroyPlayer()
 
   const video = document.getElementById('live-video')
@@ -108,13 +106,7 @@ function connect() {
 }
 
 function attachHls(video, url) {
-  const player = new window.Hls({
-    enableWorker: true,
-    lowLatencyMode: false,
-    startFragPrefetch: false,
-    liveSyncDurationCount: 1,
-    maxBufferLength: 8,
-  })
+  const player = new window.Hls()
   state.hls = player
   player.loadSource(url)
   player.attachMedia(video)
@@ -122,21 +114,10 @@ function attachHls(video, url) {
     setStage('')
     video.play().catch(() => {})
   })
-  player.on(window.Hls.Events.FRAG_BUFFERED, () => {
-    state.mediaRecoveries = 0
-    setStage('')
-  })
   player.on(window.Hls.Events.ERROR, (_event, data) => {
-    if (data?.details === 'fragParsingError' && state.mediaRecoveries < 8) {
-      state.mediaRecoveries += 1
-      setStage('Esperando un segmento de video…')
-      if (data.fatal) player.recoverMediaError()
-      return
-    }
     if (!data?.fatal) return
-    const detail = data.details || data.type || 'error de red'
-    const reason = data.reason || data.error?.message || ''
-    showError(`No se pudo abrir el directo (${detail}${reason ? `: ${reason}` : ''}). URL: ${url}`)
+    const detail = data.reason || data.error?.message || data.details || 'error de red'
+    showError(`No se pudo abrir el directo (${detail}). URL: ${url}`)
     setStage('Sin señal en vivo.')
     destroyPlayer()
   })
