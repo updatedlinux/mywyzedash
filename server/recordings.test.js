@@ -4,7 +4,7 @@ import { createServer } from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
-import { collapseBridgeHlsUrl, hlsUrl } from '../public/js/api.js'
+import { hlsUrl } from '../public/js/api.js'
 import { createApp } from './index.js'
 import { listCameras, listClips, listDates, parseByteRange, parseMvhd, resolveClip } from './recordings.js'
 
@@ -16,21 +16,6 @@ function mvhdV0(timescale, duration) {
   buffer.writeUInt32BE(duration, 20)
   return buffer
 }
-
-test('las rutas relativas del bridge no duplican /hls/', () => {
-  assert.equal(
-    collapseBridgeHlsUrl('http://192.168.88.37:5080/hls/estacionamiento.m3u8'),
-    'http://192.168.88.37:5080/hls/estacionamiento.m3u8',
-  )
-  assert.equal(
-    collapseBridgeHlsUrl('http://192.168.88.37:5080/hls/hls/playlist.m3u8?id=zhq7ZruN'),
-    'http://192.168.88.37:5080/hls/playlist.m3u8?id=zhq7ZruN',
-  )
-  assert.equal(
-    collapseBridgeHlsUrl('http://192.168.88.37:5080/hls/hls/segment.ts?id=zhq7ZruN&n=1'),
-    'http://192.168.88.37:5080/hls/segment.ts?id=zhq7ZruN&n=1',
-  )
-})
 
 test('el directo apunta al master HLS del bridge, no al puerto de la app', () => {
   const url = hlsUrl({
