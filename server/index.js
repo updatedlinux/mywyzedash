@@ -16,9 +16,38 @@ function asyncRoute(handler) {
   }
 }
 
+function prefersDesktop(req) {
+  const query = String(req.query.desktop || '')
+  if (query === '1') return true
+  if (query === '0') return false
+  return /(?:^|;\s*)wyze_desktop=1(?:;|$)/.test(req.get('cookie') || '')
+}
+
+function isPhone(req) {
+  const ua = req.get('user-agent') || ''
+  if (/iPad|Tablet|PlayBook/i.test(ua)) return false
+  return /iPhone|iPod|Android.+Mobile|Windows Phone|IEMobile|Opera Mini|webOS|BlackBerry/i.test(ua)
+}
+
 export function createApp(config) {
   const app = express()
   app.disable('x-powered-by')
+
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+    if (req.path !== '/' && req.path !== '/index.html') return next()
+    const query = String(req.query.desktop || '')
+    if (query === '1') {
+      res.setHeader('Set-Cookie', 'wyze_desktop=1; Path=/; Max-Age=31536000; SameSite=Lax')
+    } else if (query === '0') {
+      res.setHeader('Set-Cookie', 'wyze_desktop=; Path=/; Max-Age=0; SameSite=Lax')
+    }
+    if (isPhone(req) && !prefersDesktop(req)) {
+      res.redirect(302, '/m/')
+      return
+    }
+    next()
+  })
 
   app.get('/api/health', asyncRoute(async (_req, res) => {
     let recordingsReadable = false

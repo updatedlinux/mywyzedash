@@ -98,6 +98,56 @@ test('el nombre UTC se muestra 4 horas antes y se agrupa en el día local', asyn
   }
 })
 
+test('un teléfono entra a la app móvil y el escritorio conserva su interfaz', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'wyze-dvr-mobile-'))
+  const phoneUa = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'
+  const desktopUa = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15'
+  try {
+    const app = createApp({
+      recordingsPath: root,
+      bridgeHost: '192.168.88.37',
+      hlsPort: 5080,
+      rtspPort: 8554,
+      hlsPath: '/hls/{camera}.m3u8',
+    })
+    const server = createServer(app)
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    const { port } = server.address()
+    const base = `http://127.0.0.1:${port}`
+    try {
+      const phone = await fetch(`${base}/`, {
+        headers: { 'User-Agent': phoneUa },
+        redirect: 'manual',
+      })
+      assert.equal(phone.status, 302)
+      assert.equal(phone.headers.get('location'), '/m/')
+
+      const desktop = await fetch(`${base}/`, {
+        headers: { 'User-Agent': desktopUa },
+        redirect: 'manual',
+      })
+      assert.equal(desktop.status, 200)
+      const desktopHtml = await desktop.text()
+      assert.match(desktopHtml, /id="view-recordings"/)
+      assert.doesNotMatch(desktopHtml, /class="tabbar"/)
+
+      const opted = await fetch(`${base}/`, {
+        headers: { 'User-Agent': phoneUa, Cookie: 'wyze_desktop=1' },
+        redirect: 'manual',
+      })
+      assert.equal(opted.status, 200)
+
+      const mobile = await fetch(`${base}/m/`)
+      assert.equal(mobile.status, 200)
+      assert.match(await mobile.text(), /class="tabbar"/)
+    } finally {
+      await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())))
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
 test('el video responde 206 con Content-Range', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'wyze-dvr-http-'))
   const payload = Buffer.alloc(1000, 7)

@@ -1,0 +1,17 @@
+{
+  "name": "Wyze DVR",
+  "short_name": "Wyze DVR",
+  "start_url": "/m/",
+  "scope": "/m/",
+  "display": "standalone",
+  "background_color": "#0c1017",
+  "theme_color": "#041525",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

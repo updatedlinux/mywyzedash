@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#041525" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Wyze DVR</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/m/manifest.webmanifest" />
+  <link rel="stylesheet" href="/m/css/app.css" />
+  <script src="/vendor/hls.min.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <section id="view-recordings" class="screen" data-view="recordings" aria-label="Grabaciones">
+      <header class="appbar">
+        <div class="appbar-copy">
+          <strong>Grabaciones</strong>
+          <a class="desktop-link" href="/?desktop=1">Escritorio</a>
+        </div>
+        <button type="button" class="icon-btn" id="m-refresh" aria-label="Actualizar">↻</button>
+      </header>
+      <div id="m-cameras" class="chips" role="listbox" aria-label="Cámaras"></div>
+      <p id="m-error" class="banner" hidden></p>
+      <div class="rec-body">
+        <div class="player-block">
+          <div class="stage">
+            <video id="m-video" controls playsinline preload="metadata"></video>
+            <p id="m-stage-status" class="stage-status">Elige una cámara y un día.</p>
+          </div>
+          <div class="meta-row">
+            <button type="button" class="date-btn" id="m-date" aria-haspopup="dialog">Elegir día</button>
+            <p id="m-now" class="now">Sin clip</p>
+          </div>
+          <div class="controls">
+            <button type="button" class="ctrl" id="m-prev">Anterior</button>
+            <button type="button" class="ctrl" id="m-next">Siguiente</button>
+            <label class="switch" title="Continuar al siguiente clip">
+              <input type="checkbox" id="m-continue" checked />
+              <span class="switch-ui" aria-hidden="true"></span>
+              <span>Seguir</span>
+            </label>
+          </div>
+          <div class="speeds" role="group" aria-label="Velocidad">
+            <button type="button" class="speed" data-rate="1">1×</button>
+            <button type="button" class="speed" data-rate="2">2×</button>
+            <button type="button" class="speed" data-rate="4">4×</button>
+            <button type="button" class="speed" data-rate="8">8×</button>
+          </div>
+          <div id="m-daybar" class="daybar" role="group" aria-label="Línea de tiempo del día"></div>
+          <div class="daybar-scale" aria-hidden="true">
+            <span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span>
+          </div>
+        </div>
+        <section class="clip-pane" aria-label="Clips del día">
+          <div class="clip-head">
+            <h2>Clips</h2>
+            <p id="m-summary" class="muted">—</p>
+          </div>
+          <div id="m-clips" class="clips" role="listbox"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="view-live" class="screen" data-view="live" hidden aria-label="En vivo">
+      <header class="appbar">
+        <div class="appbar-copy">
+          <strong>En vivo</strong>
+          <a class="desktop-link" href="/?desktop=1">Escritorio</a>
+        </div>
+        <button type="button" class="icon-btn" id="m-live-reconnect" aria-label="Reconectar">↻</button>
+      </header>
+      <div id="m-live-cameras" class="chips" role="listbox" aria-label="Cámaras en vivo"></div>
+      <p id="m-live-error" class="banner" hidden></p>
+      <div class="live-body">
+        <div class="stage stage--live">
+          <span class="live-badge">EN VIVO</span>
+          <video id="m-live-video" autoplay muted playsinline controls></video>
+          <p id="m-live-status" class="stage-status">Selecciona una cámara.</p>
+        </div>
+        <p id="m-live-url" class="stream-url">—</p>
+      </div>
+    </section>
+
+    <nav class="tabbar" aria-label="Modo de visualización">
+      <a class="tab" data-tab="recordings" href="#/grabaciones" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 9.5v5l4.5-2.5L10 9.5Z" fill="currentColor"/></svg>
+        <span>Grabaciones</span>
+      </a>
+      <a class="tab tab--live" data-tab="live" href="#/en-vivo" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>En vivo</span>
+      </a>
+    </nav>
+  </div>
+
+  <dialog id="m-sheet" class="sheet" aria-label="Calendario">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="cal-head">
+      <button type="button" class="icon-btn" id="m-cal-prev" aria-label="Mes anterior">‹</button>
+      <h2 id="m-cal-title">Calendario</h2>
+      <button type="button" class="icon-btn" id="m-cal-next" aria-label="Mes siguiente">›</button>
+    </div>
+    <div class="cal-week" aria-hidden="true">
+      <span>lu</span><span>ma</span><span>mi</span><span>ju</span><span>vi</span><span>sá</span><span>do</span>
+    </div>
+    <div id="m-cal-grid" class="cal-grid"></div>
+  </dialog>
+
+  <script type="module" src="/m/js/app.js"></script>
+</body>
+</html>
