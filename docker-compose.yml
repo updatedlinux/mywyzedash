@@ -11,6 +11,7 @@ services:
       RTSP_PORT: ${RTSP_PORT:-8554}
       HLS_PATH: ${HLS_PATH:-/hls/{camera}.m3u8}
       PORT: 3000
+      RECORDING_TZ_OFFSET_HOURS: ${RECORDING_TZ_OFFSET_HOURS:-4}
     volumes:
       - ${RECORDINGS_PATH:-/Volumes/WyzeNVR/wyze-bridge/recordings}:/recordings:ro
     restart: unless-stopped

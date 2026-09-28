@@ -49,11 +49,12 @@ test('el listado descubre cámaras, fechas y clips sin escribir', async () => {
     await writeFile(path.join(root, 'oficina', 'notas.txt'), 'ignorar')
 
     assert.deepEqual(await listCameras(root), ['estacionamiento', 'oficina'])
-    assert.deepEqual(await listDates(root, 'oficina'), ['2026-09-28'])
+    assert.deepEqual(await listDates(root, 'oficina', 0), ['2026-09-28'])
 
-    const clips = await listClips(root, 'oficina', '2026-09-28')
+    const clips = await listClips(root, 'oficina', '2026-09-28', 0)
     assert.equal(clips.length, 1)
     assert.equal(clips[0].file, '2026-09-28_01-50-53.mp4')
+    assert.equal(clips[0].diskDate, '2026-09-28')
     assert.equal(clips[0].start, '01:50:53')
     assert.equal(clips[0].durationSeconds, 300)
     assert.equal(clips[0].end, '01:55:53')
@@ -67,6 +68,29 @@ test('el listado descubre cámaras, fechas y clips sin escribir', async () => {
       () => resolveClip(root, 'oficina', '2026-09-28', '../secreto.mp4'),
       (error) => error.status === 400,
     )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('el nombre UTC se muestra 4 horas antes y se agrupa en el día local', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'wyze-dvr-tz-'))
+  try {
+    await mkdir(path.join(root, 'oficina', '2026-09-28'), { recursive: true })
+    await writeFile(path.join(root, 'oficina', '2026-09-28', '2026-09-28_01-55-54.mp4'), mvhdV0(1000, 300000))
+
+    assert.deepEqual(await listDates(root, 'oficina'), ['2026-09-27'])
+    assert.deepEqual(await listClips(root, 'oficina', '2026-09-28'), [])
+
+    const clips = await listClips(root, 'oficina', '2026-09-27')
+    assert.equal(clips.length, 1)
+    assert.equal(clips[0].file, '2026-09-28_01-55-54.mp4')
+    assert.equal(clips[0].diskDate, '2026-09-28')
+    assert.equal(clips[0].start, '21:55:54')
+    assert.equal(clips[0].end, '22:00:54')
+
+    const resolved = await resolveClip(root, 'oficina', clips[0].diskDate, clips[0].file)
+    assert.equal(resolved.filePath.endsWith(path.join('2026-09-28', '2026-09-28_01-55-54.mp4')), true)
   } finally {
     await rm(root, { recursive: true, force: true })
   }

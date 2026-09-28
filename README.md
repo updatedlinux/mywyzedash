@@ -31,6 +31,7 @@ Copia `.env.example` a `.env` si quieres correrlo con Docker Compose.
 | `HLS_PATH` | Plantilla, por defecto `/hls/{camera}.m3u8` |
 | `RTSP_PORT` | Solo informativo. El navegador no abre RTSP |
 | `PORT` | Puerto de esta app, por defecto `3000` |
+| `RECORDING_TZ_OFFSET_HOURS` | Horas que se restan al nombre UTC del mp4. Por defecto `4` |
 
 ## Arranque local
 

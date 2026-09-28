@@ -62,6 +62,18 @@ function pad(value) {
   return String(value).padStart(2, '0')
 }
 
+export function localFromFilename(date, hours, minutes, seconds, offsetHours = 4) {
+  const [year, month, day] = date.split('-').map(Number)
+  const labeledMs = Date.UTC(year, month - 1, day, hours, minutes, seconds)
+  const localMs = labeledMs - offsetHours * 60 * 60 * 1000
+  const local = new Date(localMs)
+  return {
+    localDate: `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}`,
+    start: `${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:${pad(local.getUTCSeconds())}`,
+    sortKey: localMs,
+  }
+}
+
 export function clockFromSeconds(totalSeconds) {
   const normalized = ((totalSeconds % 86400) + 86400) % 86400
   const hours = Math.floor(normalized / 3600)
@@ -163,7 +175,7 @@ export async function listCameras(root) {
     .sort((a, b) => a.localeCompare(b, 'es'))
 }
 
-export async function listDates(root, camera) {
+async function cameraDayFolders(root, camera) {
   await ensureRoot(root)
   const cameraPath = resolveInside(root, camera)
   let entries
@@ -183,47 +195,63 @@ export async function listDates(root, camera) {
     .sort()
 }
 
-export async function listClips(root, camera, date) {
-  if (!DATE_RE.test(date)) throw new HttpError(400, 'La fecha debe tener formato YYYY-MM-DD')
-  await ensureRoot(root)
-  const dayPath = resolveInside(root, camera, date)
+async function clipsInFolder(root, camera, diskDate) {
+  const dayPath = resolveInside(root, camera, diskDate)
   let names
   try {
     names = await fs.readdir(dayPath)
   } catch (error) {
-    if (error instanceof HttpError) throw error
-    if (error && error.code === 'ENOENT') {
-      try {
-        await fs.stat(resolveInside(root, camera))
-      } catch {
-        throw new HttpError(404, 'Cámara no encontrada')
-      }
-      return []
-    }
+    if (error && error.code === 'ENOENT') return []
     if (error && (error.code === 'EACCES' || error.code === 'EPERM')) {
       throw new HttpError(503, 'No hay permiso de lectura sobre ese día')
     }
     throw new HttpError(500, 'No se pudieron leer los clips')
   }
+  return names.filter((name) => CLIP_RE.test(name)).map((file) => ({ file, diskDate }))
+}
 
-  const files = names.filter((name) => CLIP_RE.test(name)).sort()
-  return mapPool(files, 8, async (file) => {
-    const match = CLIP_RE.exec(file)
-    const filePath = resolveInside(root, camera, date, file)
+export async function listDates(root, camera, offsetHours = 4) {
+  const folders = await cameraDayFolders(root, camera)
+  const dates = new Set()
+  for (const diskDate of folders) {
+    const clips = await clipsInFolder(root, camera, diskDate)
+    for (const clip of clips) {
+      const match = CLIP_RE.exec(clip.file)
+      dates.add(localFromFilename(match[1], Number(match[2]), Number(match[3]), Number(match[4]), offsetHours).localDate)
+    }
+  }
+  return [...dates].sort()
+}
+
+export async function listClips(root, camera, date, offsetHours = 4) {
+  if (!DATE_RE.test(date)) throw new HttpError(400, 'La fecha debe tener formato YYYY-MM-DD')
+  const folders = await cameraDayFolders(root, camera)
+  const located = []
+  for (const diskDate of folders) {
+    const clips = await clipsInFolder(root, camera, diskDate)
+    for (const clip of clips) {
+      const match = CLIP_RE.exec(clip.file)
+      const local = localFromFilename(match[1], Number(match[2]), Number(match[3]), Number(match[4]), offsetHours)
+      if (local.localDate === date) located.push({ ...clip, ...local })
+    }
+  }
+  located.sort((a, b) => a.sortKey - b.sortKey)
+
+  return mapPool(located, 8, async (clip) => {
+    const filePath = resolveInside(root, camera, clip.diskDate, clip.file)
     const stat = await fs.stat(filePath)
-    const start = `${match[2]}:${match[3]}:${match[4]}`
-    const [hours, minutes, seconds] = start.split(':').map(Number)
-    const startSeconds = hours * 3600 + minutes * 60 + seconds
     let durationSeconds = null
     if (stat.isFile() && stat.size > 0) {
       durationSeconds = await readMp4DurationSeconds(filePath, stat)
     }
     const durationEstimated = durationSeconds == null
     const usedDuration = durationSeconds ?? ASSUMED_CLIP_SECONDS
+    const [hours, minutes, seconds] = clip.start.split(':').map(Number)
     return {
-      file,
-      start,
-      end: clockFromSeconds(startSeconds + usedDuration),
+      file: clip.file,
+      diskDate: clip.diskDate,
+      start: clip.start,
+      end: clockFromSeconds(hours * 3600 + minutes * 60 + seconds + usedDuration),
       durationSeconds,
       durationEstimated,
       sizeBytes: stat.size,

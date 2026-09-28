@@ -50,13 +50,13 @@ export function createApp(config) {
   }))
 
   app.get('/api/cameras/:camera/dates', asyncRoute(async (req, res) => {
-    const dates = await listDates(config.recordingsPath, req.params.camera)
+    const dates = await listDates(config.recordingsPath, req.params.camera, config.recordingTzOffsetHours)
     res.json({ camera: req.params.camera, dates })
   }))
 
   app.get('/api/cameras/:camera/clips', asyncRoute(async (req, res) => {
     const date = String(req.query.date || '')
-    const clips = await listClips(config.recordingsPath, req.params.camera, date)
+    const clips = await listClips(config.recordingsPath, req.params.camera, date, config.recordingTzOffsetHours)
     res.json({ camera: req.params.camera, date, clips })
   }))
 

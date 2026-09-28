@@ -1,5 +1,15 @@
 import path from 'node:path'
 
+function envOffsetHours(env, name, fallback) {
+  const raw = env[name]
+  if (raw == null || String(raw).trim() === '') return fallback
+  const value = Number(raw)
+  if (!Number.isInteger(value) || value < -14 || value > 14) {
+    throw new Error(`${name} debe ser un entero entre -14 y 14`)
+  }
+  return value
+}
+
 function envInt(env, name, fallback) {
   const raw = env[name]
   if (raw == null || String(raw).trim() === '') return fallback
@@ -23,6 +33,7 @@ export function loadConfig(env = process.env) {
     bridgeHost: (env.BRIDGE_HOST || '192.168.88.37').trim(),
     hlsPort: envInt(env, 'HLS_PORT', 5080),
     rtspPort: envInt(env, 'RTSP_PORT', 8554),
+    recordingTzOffsetHours: envOffsetHours(env, 'RECORDING_TZ_OFFSET_HOURS', 4),
     hlsPath,
   }
 }

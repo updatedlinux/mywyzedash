@@ -253,7 +253,7 @@ function onDaybarClick(event) {
 function playClip(clip, { auto }) {
   state.file = clip.file
   const video = document.getElementById('rec-video')
-  video.src = mediaUrl(state.camera, state.date, clip.file)
+  video.src = mediaUrl(state.camera, clip.diskDate || state.date, clip.file)
   video.playbackRate = state.rate
   document.getElementById('rec-now-playing').textContent = `${state.camera} · ${state.date} · ${clip.start} – ${clip.end}`
   renderClips({ scroll: true })
