@@ -115,6 +115,11 @@ function attachHls(video, url) {
     video.play().catch(() => {})
   })
   player.on(window.Hls.Events.ERROR, (_event, data) => {
+    if (String(data?.reason || '').includes('Found no media')) {
+      data.fatal = false
+      player.startLoad()
+      return
+    }
     if (!data?.fatal) return
     const detail = data.reason || data.error?.message || data.details || 'error de red'
     showError(`No se pudo abrir el directo (${detail}). URL: ${url}`)
