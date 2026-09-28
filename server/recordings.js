@@ -235,7 +235,7 @@ export async function listClips(root, camera, date, offsetHours = 4) {
       if (local.localDate === date) located.push({ ...clip, ...local })
     }
   }
-  located.sort((a, b) => a.sortKey - b.sortKey)
+  located.sort((a, b) => b.sortKey - a.sortKey)
 
   return mapPool(located, 8, async (clip) => {
     const filePath = resolveInside(root, camera, clip.diskDate, clip.file)

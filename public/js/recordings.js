@@ -45,8 +45,7 @@ function bind() {
   const video = document.getElementById('rec-video')
   video.addEventListener('ended', () => {
     if (!document.getElementById('rec-continue').checked) return
-    const index = state.clips.findIndex((clip) => clip.file === state.file)
-    const next = state.clips[index + 1]
+    const next = clipAfter(state.file, 1)
     if (next) playClip(next, { auto: true })
     else setStage('Fin de las grabaciones de este día.')
   })
@@ -201,7 +200,7 @@ function renderClips({ scroll = false } = {}) {
     if (clip.file === state.file) button.classList.add('is-selected')
 
     const time = document.createElement('strong')
-    time.textContent = `${clip.start} – ${clip.end}`
+    time.textContent = `${formatClock(clip.start)} – ${formatClock(clip.end)}`
     const meta = document.createElement('span')
     meta.textContent = `${formatDuration(clip.durationSeconds, clip.durationEstimated)} · ${formatBytes(clip.sizeBytes)}`
     button.append(time, meta)
@@ -229,7 +228,7 @@ function renderDaybar() {
     if (clip.durationEstimated) segment.classList.add('is-estimated')
     segment.style.left = `${(start / 86400) * 100}%`
     segment.style.width = `${Math.max((duration / 86400) * 100, 0.45)}%`
-    segment.title = `${clip.start} – ${clip.end}`
+    segment.title = `${formatClock(clip.start)} – ${formatClock(clip.end)}`
     segment.addEventListener('click', (event) => {
       event.stopPropagation()
       playClip(clip, { auto: true })
@@ -243,9 +242,15 @@ function onDaybarClick(event) {
   const rect = event.currentTarget.getBoundingClientRect()
   const ratio = Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1)
   const second = ratio * 86400
-  let chosen = state.clips[0]
+  let chosen = null
   for (const clip of state.clips) {
-    if (clockToSeconds(clip.start) <= second) chosen = clip
+    const start = clockToSeconds(clip.start)
+    if (start <= second && (!chosen || start > clockToSeconds(chosen.start))) chosen = clip
+  }
+  if (!chosen) {
+    chosen = state.clips.reduce((earliest, clip) => (
+      clockToSeconds(clip.start) < clockToSeconds(earliest.start) ? clip : earliest
+    ))
   }
   playClip(chosen, { auto: true })
 }
@@ -255,7 +260,7 @@ function playClip(clip, { auto }) {
   const video = document.getElementById('rec-video')
   video.src = mediaUrl(state.camera, clip.diskDate || state.date, clip.file)
   video.playbackRate = state.rate
-  document.getElementById('rec-now-playing').textContent = `${state.camera} · ${state.date} · ${clip.start} – ${clip.end}`
+  document.getElementById('rec-now-playing').textContent = `${state.camera} · ${state.date} · ${formatClock(clip.start)} – ${formatClock(clip.end)}`
   renderClips({ scroll: true })
   renderDaybar()
   if (auto) {
@@ -271,9 +276,14 @@ function clearVideo() {
   setStage('No hay clips en el día seleccionado.')
 }
 
+function clipAfter(file, delta) {
+  const ordered = [...state.clips].sort((a, b) => clockToSeconds(a.start) - clockToSeconds(b.start))
+  const index = ordered.findIndex((clip) => clip.file === file)
+  return ordered[index + delta]
+}
+
 function stepClip(delta) {
-  const index = state.clips.findIndex((clip) => clip.file === state.file)
-  const next = state.clips[index + delta]
+  const next = clipAfter(state.file, delta)
   if (next) playClip(next, { auto: true })
 }
 
@@ -328,6 +338,13 @@ function setStage(message) {
 function clockToSeconds(clock) {
   const [hours, minutes, seconds] = clock.split(':').map(Number)
   return hours * 3600 + minutes * 60 + seconds
+}
+
+function formatClock(clock) {
+  const [hours, minutes, seconds] = clock.split(':').map(Number)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const hour12 = hours % 12 || 12
+  return `${hour12}:${pad(minutes)}:${pad(seconds)} ${period}`
 }
 
 function pad(value) {

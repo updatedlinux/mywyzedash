@@ -77,17 +77,19 @@ test('el nombre UTC se muestra 4 horas antes y se agrupa en el día local', asyn
   const root = await mkdtemp(path.join(os.tmpdir(), 'wyze-dvr-tz-'))
   try {
     await mkdir(path.join(root, 'oficina', '2026-09-28'), { recursive: true })
+    await writeFile(path.join(root, 'oficina', '2026-09-28', '2026-09-28_01-50-53.mp4'), mvhdV0(1000, 300000))
     await writeFile(path.join(root, 'oficina', '2026-09-28', '2026-09-28_01-55-54.mp4'), mvhdV0(1000, 300000))
 
     assert.deepEqual(await listDates(root, 'oficina'), ['2026-09-27'])
     assert.deepEqual(await listClips(root, 'oficina', '2026-09-28'), [])
 
     const clips = await listClips(root, 'oficina', '2026-09-27')
-    assert.equal(clips.length, 1)
+    assert.equal(clips.length, 2)
     assert.equal(clips[0].file, '2026-09-28_01-55-54.mp4')
     assert.equal(clips[0].diskDate, '2026-09-28')
     assert.equal(clips[0].start, '21:55:54')
     assert.equal(clips[0].end, '22:00:54')
+    assert.equal(clips[1].start, '21:50:53')
 
     const resolved = await resolveClip(root, 'oficina', clips[0].diskDate, clips[0].file)
     assert.equal(resolved.filePath.endsWith(path.join('2026-09-28', '2026-09-28_01-55-54.mp4')), true)
