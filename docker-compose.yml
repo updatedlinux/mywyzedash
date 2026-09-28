@@ -1,0 +1,16 @@
+services:
+  wyze-dvr:
+    build: .
+    container_name: wyze-dvr
+    ports:
+      - "3000:3000"
+    environment:
+      RECORDINGS_PATH: /recordings
+      BRIDGE_HOST: ${BRIDGE_HOST:-}
+      HLS_PORT: ${HLS_PORT:-8888}
+      RTSP_PORT: ${RTSP_PORT:-8554}
+      HLS_PATH: ${HLS_PATH:-/{camera}/index.m3u8}
+      PORT: 3000
+    volumes:
+      - ${RECORDINGS_PATH:-/Volumes/WyzeNVR/wyze-bridge/recordings}:/recordings:ro
+    restart: unless-stopped

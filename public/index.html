@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#041525" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Wyze DVR</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4 8.5 12 4l8 4.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8.5Z" />
+          <circle cx="12" cy="13" r="3.2" />
+        </svg>
+      </span>
+      <div class="brand-text">
+        <strong>Wyze DVR</strong>
+        <span>Grabaciones locales</span>
+      </div>
+    </div>
+    <nav class="mode-switch" aria-label="Modo de visualización">
+      <a class="mode-tab" data-tab="recordings" href="#/grabaciones" role="tab" aria-selected="true">Grabaciones</a>
+      <a class="mode-tab mode-tab--live" data-tab="live" href="#/en-vivo" role="tab" aria-selected="false">En vivo</a>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <section id="view-recordings" class="view" data-view="recordings" aria-label="Grabaciones">
+      <div class="rec-layout">
+        <div class="rec-main">
+          <div class="stage m3-surface">
+            <video id="rec-video" controls playsinline preload="metadata"></video>
+            <p id="rec-stage-status" class="stage-status">Elige una cámara y un día con grabaciones.</p>
+          </div>
+          <div class="transport m3-surface">
+            <div class="transport-row">
+              <div>
+                <p class="eyebrow">Línea del día</p>
+                <p id="rec-now-playing" class="now-playing">Sin clip</p>
+              </div>
+              <div class="transport-actions">
+                <button type="button" class="btn btn-tonal" id="rec-prev">Anterior</button>
+                <button type="button" class="btn btn-tonal" id="rec-next">Siguiente</button>
+                <label class="continue-toggle">
+                  <input type="checkbox" id="rec-continue" checked />
+                  <span>Continuar al siguiente</span>
+                </label>
+              </div>
+            </div>
+            <div id="rec-daybar" class="daybar" role="group" aria-label="Línea de tiempo del día"></div>
+            <div class="daybar-scale" aria-hidden="true">
+              <span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>24</span>
+            </div>
+            <div class="speed-row" role="group" aria-label="Velocidad de reproducción">
+              <span class="eyebrow">Velocidad</span>
+              <button type="button" class="speed-btn" data-rate="1">1×</button>
+              <button type="button" class="speed-btn" data-rate="2">2×</button>
+              <button type="button" class="speed-btn" data-rate="4">4×</button>
+              <button type="button" class="speed-btn" data-rate="8">8×</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="rec-side">
+          <section class="m3-surface panel">
+            <div class="panel-head">
+              <h2>Cámara</h2>
+              <button type="button" class="btn btn-tonal btn-sm" id="rec-refresh">Actualizar</button>
+            </div>
+            <div id="rec-cameras" class="chip-row" role="listbox" aria-label="Cámaras"></div>
+            <p id="rec-error" class="banner" hidden></p>
+          </section>
+
+          <section class="m3-surface panel">
+            <div class="cal-head">
+              <button type="button" class="icon-btn" id="cal-prev" aria-label="Mes anterior">‹</button>
+              <h2 id="cal-title">Calendario</h2>
+              <button type="button" class="icon-btn" id="cal-next" aria-label="Mes siguiente">›</button>
+            </div>
+            <div class="cal-week" aria-hidden="true">
+              <span>lu</span><span>ma</span><span>mi</span><span>ju</span><span>vi</span><span>sá</span><span>do</span>
+            </div>
+            <div id="cal-grid" class="cal-grid"></div>
+          </section>
+
+          <section class="m3-surface panel panel-clips">
+            <div class="panel-head">
+              <h2>Clips</h2>
+              <p id="rec-summary" class="muted">—</p>
+            </div>
+            <div id="rec-clips" class="clip-list" role="listbox" aria-label="Clips del día"></div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-live" class="view" data-view="live" hidden aria-label="En vivo">
+      <div class="live-layout">
+        <div class="live-main">
+          <div class="stage stage--live m3-surface">
+            <span class="live-badge">EN VIVO</span>
+            <video id="live-video" autoplay muted playsinline controls></video>
+            <p id="live-stage-status" class="stage-status">Selecciona una cámara para conectar el stream HLS.</p>
+          </div>
+          <div class="transport m3-surface">
+            <p class="eyebrow">Stream HLS del bridge</p>
+            <p id="live-url" class="stream-url">—</p>
+            <p id="live-message" class="muted">Este reproductor no usa las grabaciones del disco.</p>
+          </div>
+        </div>
+        <aside class="live-side">
+          <section class="m3-surface panel">
+            <div class="panel-head">
+              <h2>Cámara en vivo</h2>
+              <button type="button" class="btn btn-tonal btn-sm" id="live-reconnect">Reconectar</button>
+            </div>
+            <div id="live-cameras" class="chip-row" role="listbox" aria-label="Cámaras en vivo"></div>
+            <p id="live-error" class="banner" hidden></p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="/vendor/hls.min.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

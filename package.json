@@ -1,0 +1,19 @@
+{
+  "name": "mywyzedash",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mini DVR local de solo lectura para grabaciones y vista en vivo de cámaras Wyze.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test server/*.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "hls.js": "^1.6.15"
+  }
+}
